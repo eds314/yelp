@@ -1,22 +1,19 @@
-import React, {useContext, useEffect} from 'react'
-import RestaurantFinder from "../apis/RestaurantFinder"
-import { RestaurantsContext } from '../context/RestaurantsContext'
+import React, { useContext, useEffect } from "react";
+import RestaurantFinder from "../apis/RestaurantFinder";
+import { RestaurantsContext } from "../context/RestaurantsContext";
 
 const RestaurantList = (props) => {
-  
-   const{restaurants, setRestaurants} = useContext(RestaurantsContext)
+  const { restaurants, setRestaurants } = useContext(RestaurantsContext);
 
-  useEffect( () => {
+  useEffect(() => {
     const fetchData = async () => {
-        try {
-       const response = await RestaurantFinder.get("/")
-       setRestaurants(response.data.data.restaurants)
-      } catch (error) {
-        
-      }
-    }
-    fetchData()
-  }, [])
+      try {
+        const response = await RestaurantFinder.get("/");
+        setRestaurants(response.data.data.restaurants);
+      } catch (error) {}
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className="list-group">
@@ -32,7 +29,23 @@ const RestaurantList = (props) => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          { restaurants && restaurants.map((restaurant) => {
+            return (
+              <tr key={restaurant.id}>
+                <td>{restaurant.name}</td>
+                <td>{restaurant.location}</td>   
+                <td>{"$".repeat(restaurant.price_range)}</td>
+                <td>Reviews</td>
+                <td>
+                  <button className="btn btn-warning">Update</button>
+                </td>
+                <td>
+                  <button className="btn btn-danger">Delete</button>
+                </td>
+              </tr>
+            )
+          })}
+          {/* <tr>
             <td>McDonalds</td>
             <td>New York</td>
             <td>$$</td>
@@ -40,11 +53,11 @@ const RestaurantList = (props) => {
             <td><button className="btn btn-warning">Update</button></td>
             <td><button className="btn btn-danger">Delete</button></td>
 
-          </tr>
+          </tr> */}
         </tbody>
       </table>
     </div>
-  )
-}
+  );
+};
 
-export default RestaurantList
+export default RestaurantList;
