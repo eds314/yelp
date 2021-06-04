@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
-const cors = require("cors")
+const cors = require("cors");
 
 const db = require("./db");
 
@@ -15,7 +15,7 @@ const app = express();
 //   console.log("yay our middleware ran")
 //   next();
 // })
-app.use(cors())
+app.use(cors());
 app.use(express.json());
 
 //Get all Restuarants route handler
@@ -39,14 +39,21 @@ app.get("/api/v1/restaurants/:id", async (req, res) => {
   console.log(req.params.id);
 
   try {
-    const results = await db.query("select * from restaurants where id = $1", [
-      req.params.id,
-    ]);
+    const restaurant = await db.query(
+      "select * from restaurants where id = $1",
+      [req.params.id]
+    );
+
+    const reviews = await db.query(
+      "select * from reviews where restaurant_id = $1",
+      [req.params.id]
+    );
 
     res.status(200).json({
       status: "success",
       data: {
-        restaurant: results.rows[0],
+        restaurant: restaurant.rows[0],
+        reviews: reviews.rows,
       },
     });
   } catch (error) {
@@ -82,36 +89,33 @@ app.put("/api/v1/restaurants/:id", async (req, res) => {
     const results = await db.query(
       "UPDATE restaurants SET name = $1, location = $2, price_range = $3 where id = $4 returning *",
       [req.body.name, req.body.location, req.body.price_range, req.params.id]
-    ); 
+    );
     res.status(200).json({
-    status: "success",
-    data: {
-      restaurant: results.rows[0],
-    },
-  });
+      status: "success",
+      data: {
+        restaurant: results.rows[0],
+      },
+    });
   } catch (error) {
     console.log(error);
   }
   console.log(req.params.id);
   console.log(req.body);
-
- 
 });
 
 //Delete Restaurants
 
 app.delete("/api/v1/restaurants/:id", async (req, res) => {
   try {
-    const results = await db.query(
-      "DELETE FROM restaurants where id = $1", [req.params.id]
-    )
+    const results = await db.query("DELETE FROM restaurants where id = $1", [
+      req.params.id,
+    ]);
     res.status(204).json({
-    status: "success",
-  });
+      status: "success",
+    });
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-  
 });
 
 // || default value
