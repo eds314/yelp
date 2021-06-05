@@ -1,88 +1,87 @@
 require("dotenv").config();
-
 const express = require("express");
 const cors = require("cors");
-
 const db = require("./db");
 
 const morgan = require("morgan");
 
 const app = express();
 
-//This is middleware. Always define middle ware before route handelrs
-// app.use(morgan("dev"))
-// app.use((req,res, next) => {
-//   console.log("yay our middleware ran")
-//   next();
-// })
 app.use(cors());
 app.use(express.json());
 
-//Get all Restuarants route handler
+// Get all Restaurants
 app.get("/api/v1/restaurants", async (req, res) => {
   try {
-    const results = await db.query("select * from restaurants");
+    //const results = await db.query("select * from restaurants");
+    const restaurantRatingsData = await db.query(
+      "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id;"
+    );
+
     res.status(200).json({
       status: "success",
-      results: results.rows.length,
+      results: restaurantRatingsData.rows.length,
       data: {
-        restaurant: results.rows,
+        restaurants: restaurantRatingsData.rows,
       },
     });
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    console.log(err);
   }
 });
 
-//Get individual restaurant route handler
+//Get a Restaurant
 app.get("/api/v1/restaurants/:id", async (req, res) => {
   console.log(req.params.id);
 
   try {
     const restaurant = await db.query(
-      "select * from restaurants where id = $1",
+      "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id where id = $1",
       [req.params.id]
     );
+    // select * from restaurants wehre id = req.params.id
 
     const reviews = await db.query(
       "select * from reviews where restaurant_id = $1",
       [req.params.id]
     );
+    console.log(reviews);
 
     res.status(200).json({
-      status: "success",
+      status: "succes",
       data: {
         restaurant: restaurant.rows[0],
         reviews: reviews.rows,
       },
     });
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    console.log(err);
   }
 });
 
-//Create a restaurant route handler
+// Create a Restaurant
+
 app.post("/api/v1/restaurants", async (req, res) => {
   console.log(req.body);
 
   try {
     const results = await db.query(
-      "INSERT INTO restaurants (name, location, price_range) values($1, $2, $3) returning *",
+      "INSERT INTO restaurants (name, location, price_range) values ($1, $2, $3) returning *",
       [req.body.name, req.body.location, req.body.price_range]
     );
     console.log(results);
     res.status(201).json({
-      status: "success",
+      status: "succes",
       data: {
         restaurant: results.rows[0],
       },
     });
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    console.log(err);
   }
 });
 
-//Update Restaurants
+// Update Restaurants
 
 app.put("/api/v1/restaurants/:id", async (req, res) => {
   try {
@@ -90,53 +89,53 @@ app.put("/api/v1/restaurants/:id", async (req, res) => {
       "UPDATE restaurants SET name = $1, location = $2, price_range = $3 where id = $4 returning *",
       [req.body.name, req.body.location, req.body.price_range, req.params.id]
     );
+
     res.status(200).json({
-      status: "success",
+      status: "succes",
       data: {
         restaurant: results.rows[0],
       },
     });
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    console.log(err);
   }
   console.log(req.params.id);
   console.log(req.body);
 });
 
-//Delete Restaurants
+// Delete Restaurant
 
 app.delete("/api/v1/restaurants/:id", async (req, res) => {
   try {
-    const results = await db.query("DELETE FROM restaurants where id = $1", [
+    const results = db.query("DELETE FROM restaurants where id = $1", [
       req.params.id,
     ]);
     res.status(204).json({
-      status: "success",
+      status: "sucess",
     });
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    console.log(err);
   }
 });
 
-//addReview
-app.post("api/v1/restaurants/:id/addReview", async (req, res) => {
+app.post("/api/v1/restaurants/:id/addReview", async (req, res) => {
   try {
     const newReview = await db.query(
-      "INSERT INTO reviews (restaurant_id, name, review, rating) values($1, $2, $3, $4) returning *;",
-      [req.params.id, req.body.name, req.body.review, req.body.rating]);
-      console.log(newReviews)
-      res.status(201).json({
-        status: 'success',
-        data: {
-          review: newReview.rows[0],
-        }
-      })
-  } catch (error) {
-    console.log(error)
+      "INSERT INTO reviews (restaurant_id, name, review, rating) values ($1, $2, $3, $4) returning *;",
+      [req.params.id, req.body.name, req.body.review, req.body.rating]
+    );
+    console.log(newReview);
+    res.status(201).json({
+      status: "success",
+      data: {
+        review: newReview.rows[0],
+      },
+    });
+  } catch (err) {
+    console.log(err);
   }
 });
 
-// || default value
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
   console.log(`server is up and listening on port ${port}`);
