@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import RestaurantFinder from "../apis/RestaurantFinder";
-import { useHistory, useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useHistory } from "react-router-dom";
 
 const AddReview = () => {
   const { id } = useParams();
   const location = useLocation();
-  console.log(location)
+  console.log(location);
   const history = useHistory();
   console.log(id);
 
-  const [name, setName] = useState * "";
-  const [reviewText, setReviewText] = useState * "";
+  const [name, setName] = useState("");
+  const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState("Rating");
 
   const handleSubmitReview = async (e) => {
@@ -21,9 +21,9 @@ const AddReview = () => {
         review: reviewText,
         rating,
       });
-      history.push("/")
-      history.push(location.pathname)
-    } catch (error) {}
+      history.push("/");
+      history.push(location.pathname);
+    } catch (err) {}
   };
   return (
     <div className="mb-2">
@@ -34,11 +34,13 @@ const AddReview = () => {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
+              id="name"
+              placeholder="name"
               type="text"
               className="form-control"
-            ></input>
+            />
           </div>
-          <div className="from-group col-4">
+          <div className="form-group col-4">
             <label htmlFor="rating">Rating</label>
             <select
               value={rating}
@@ -56,7 +58,7 @@ const AddReview = () => {
           </div>
         </div>
         <div className="form-group">
-          <label htmlFor="Reviews">Reviews</label>
+          <label htmlFor="Review">Review</label>
           <textarea
             value={reviewText}
             onChange={(e) => setReviewText(e.target.value)}
@@ -65,7 +67,7 @@ const AddReview = () => {
           ></textarea>
         </div>
         <button
-          typeof="submit"
+          type="submit"
           onClick={handleSubmitReview}
           className="btn btn-primary"
         >
